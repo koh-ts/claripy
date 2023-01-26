@@ -5,7 +5,9 @@ import threading
 import numbers
 
 import logging
-l = logging.getLogger('claripy.backend')
+
+l = logging.getLogger("claripy.backend")
+
 
 class Backend:
     """
@@ -48,11 +50,19 @@ class Backend:
     _convert() to see if the backend can handle that type of object.
     """
 
-    __slots__ = ('_op_raw', '_op_expr', '_cache_objects', '_solver_required', '_tls', '_true_cache', '_false_cache', )
+    __slots__ = (
+        "_op_raw",
+        "_op_expr",
+        "_cache_objects",
+        "_solver_required",
+        "_tls",
+        "_true_cache",
+        "_false_cache",
+    )
 
     def __init__(self, solver_required=None):
-        self._op_raw = { }
-        self._op_expr = { }
+        self._op_raw = {}
+        self._op_expr = {}
         self._cache_objects = True
         self._solver_required = solver_required is not None
 
@@ -114,7 +124,7 @@ class Backend:
     # can understand.
     #
 
-    def _convert(self, r): #pylint:disable=W0613,R0201
+    def _convert(self, r):  # pylint:disable=W0613,R0201
         """
         Converts `r` to something usable by this backend.
         """
@@ -141,7 +151,7 @@ class Backend:
         except BackendError:
             return False
 
-    def convert(self, expr): #pylint:disable=R0201
+    def convert(self, expr):  # pylint:disable=R0201
         """
         Resolves a claripy.ast.Base into something usable by the backend.
 
@@ -166,8 +176,10 @@ class Backend:
                         continue
 
                     if self in ast._errored:
-                        raise BackendError("%s can't handle operation %s (%s) due to a failed "
-                                           "conversion on a child node" % (self, ast.op, ast.__class__.__name__))
+                        raise BackendError(
+                            "%s can't handle operation %s (%s) due to a failed "
+                            "conversion on a child node" % (self, ast.op, ast.__class__.__name__)
+                        )
 
                     if self._cache_objects:
                         cached_obj = self._object_cache.get(ast._cache_key, None)
@@ -192,8 +204,8 @@ class Backend:
                             r = op(ast)
 
                         else:
-                            args = arg_queue[-len(ast.args):]
-                            del arg_queue[-len(ast.args):]
+                            args = arg_queue[-len(ast.args) :]
+                            del arg_queue[-len(ast.args) :]
 
                             try:
                                 r = self._call(ast.op, args)
@@ -226,7 +238,7 @@ class Backend:
         return arg_queue.pop()
 
     def convert_list(self, args):
-        return [ a if isinstance(a, numbers.Number) else self.convert(a) for a in args ]
+        return [a if isinstance(a, numbers.Number) else self.convert(a) for a in args]
 
     #
     # These functions provide support for applying operations to expressions.
@@ -273,7 +285,7 @@ class Backend:
     # Abstraction and resolution.
     #
 
-    def _abstract(self, e): #pylint:disable=W0613,R0201
+    def _abstract(self, e):  # pylint:disable=W0613,R0201
         """
         Abstracts the BackendObject e to an AST.
 
@@ -291,14 +303,14 @@ class Backend:
         o._simplified = Base.FULL_SIMPLIFY
         return o
 
-    def _simplify(self, e): # pylint:disable=R0201,unused-argument
+    def _simplify(self, e):  # pylint:disable=R0201,unused-argument
         raise BackendError("backend %s can't simplify" % self.__class__.__name__)
 
     #
     # Some other helpers
     #
 
-    def is_true(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=unused-argument
+    def is_true(self, e, extra_constraints=(), solver=None, model_callback=None):  # pylint:disable=unused-argument
         """
         Should return True if `e` can be easily found to be True.
 
@@ -309,22 +321,26 @@ class Backend:
         :returns:                   A boolean.
         """
 
-        #if self._solver_required and solver is None:
+        # if self._solver_required and solver is None:
         #   raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
         if not isinstance(e, Base):
-            return self._is_true(self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback)
+            return self._is_true(
+                self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback
+            )
 
         try:
             return self._true_cache[e.cache_key]
         except KeyError:
-            t = self._is_true(self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback)
-            if len(extra_constraints) == 0: # Only update cache when we have no extra constraints
+            t = self._is_true(
+                self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback
+            )
+            if len(extra_constraints) == 0:  # Only update cache when we have no extra constraints
                 self._true_cache[e.cache_key] = t
                 if t is True:
                     self._false_cache[e.cache_key] = False
             return t
 
-    def is_false(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=unused-argument
+    def is_false(self, e, extra_constraints=(), solver=None, model_callback=None):  # pylint:disable=unused-argument
         """
         Should return True if e can be easily found to be False.
 
@@ -334,22 +350,28 @@ class Backend:
         :param model_callback:      a function that will be executed with recovered models (if any)
         :return:                   A boolean.
         """
-        #if self._solver_required and solver is None:
+        # if self._solver_required and solver is None:
         #   raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
         if not isinstance(e, Base):
-            return self._is_false(self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback)
+            return self._is_false(
+                self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback
+            )
 
         try:
             return self._false_cache[e.cache_key]
         except KeyError:
-            f = self._is_false(self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback)
-            if len(extra_constraints) == 0: # Only update cache when we have no extra constraints
+            f = self._is_false(
+                self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback
+            )
+            if len(extra_constraints) == 0:  # Only update cache when we have no extra constraints
                 self._false_cache[e.cache_key] = f
                 if f is True:
                     self._true_cache[e.cache_key] = False
             return f
 
-    def _is_false(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=no-self-use,unused-argument
+    def _is_false(
+        self, e, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=no-self-use,unused-argument
         """
         The native version of is_false.
 
@@ -361,7 +383,9 @@ class Backend:
         """
         raise BackendError("backend doesn't support _is_false")
 
-    def _is_true(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=no-self-use,unused-argument
+    def _is_true(
+        self, e, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=no-self-use,unused-argument
         """
         The native version of is_true.
 
@@ -373,7 +397,7 @@ class Backend:
         """
         raise BackendError("backend doesn't support _is_true")
 
-    def has_true(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=unused-argument
+    def has_true(self, e, extra_constraints=(), solver=None, model_callback=None):  # pylint:disable=unused-argument
         """
         Should return True if `e` can possible be True.
 
@@ -384,12 +408,14 @@ class Backend:
         :return:                   A boolean
         """
 
-        #if self._solver_required and solver is None:
+        # if self._solver_required and solver is None:
         #   raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
 
-        return self._has_true(self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback)
+        return self._has_true(
+            self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback
+        )
 
-    def has_false(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=unused-argument
+    def has_false(self, e, extra_constraints=(), solver=None, model_callback=None):  # pylint:disable=unused-argument
         """
         Should return False if `e` can possibly be False.
 
@@ -400,12 +426,16 @@ class Backend:
         :return:                   A boolean.
         """
 
-        #if self._solver_required and solver is None:
+        # if self._solver_required and solver is None:
         #   raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
 
-        return self._has_false(self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback)
+        return self._has_false(
+            self.convert(e), extra_constraints=extra_constraints, solver=solver, model_callback=model_callback
+        )
 
-    def _has_false(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=no-self-use,unused-argument
+    def _has_false(
+        self, e, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=no-self-use,unused-argument
         """
         The native version of :func:`has_false`.
 
@@ -417,7 +447,9 @@ class Backend:
         """
         raise BackendError("backend doesn't support _has_false")
 
-    def _has_true(self, e, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=no-self-use,unused-argument
+    def _has_true(
+        self, e, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=no-self-use,unused-argument
         """
         The native version of :func:`has_true`.
 
@@ -433,7 +465,7 @@ class Backend:
     # These functions are straight-up solver functions
     #
 
-    def solver(self, timeout=None): #pylint:disable=no-self-use,unused-argument
+    def solver(self, timeout=None):  # pylint:disable=no-self-use,unused-argument
         """
         This function should return an instance of whatever object handles
         solving for this backend. For example, in Z3, this would be z3.Solver().
@@ -450,7 +482,7 @@ class Backend:
         """
         return self._add(s, self.convert_list(c), track=track)
 
-    def _add(self, s, c, track=False): #pylint:disable=no-self-use,unused-argument
+    def _add(self, s, c, track=False):  # pylint:disable=no-self-use,unused-argument
         """
         This function adds constraints to the backend solver.
 
@@ -468,9 +500,9 @@ class Backend:
         :return: The unsat core.
         """
 
-        return [ self._abstract(core) for core in self._unsat_core(s) ]
+        return [self._abstract(core) for core in self._unsat_core(s)]
 
-    def _unsat_core(self, s):  #pylint:disable=no-self-use,unused-argument
+    def _unsat_core(self, s):  # pylint:disable=no-self-use,unused-argument
         """
         This function returns the unsat core from the backend solver.
 
@@ -500,11 +532,16 @@ class Backend:
             raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
 
         return self._eval(
-            self.convert(expr), n, extra_constraints=self.convert_list(extra_constraints),
-            solver=solver, model_callback=model_callback
+            self.convert(expr),
+            n,
+            extra_constraints=self.convert_list(extra_constraints),
+            solver=solver,
+            model_callback=model_callback,
         )
 
-    def _eval(self, expr, n, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=unused-argument,no-self-use
+    def _eval(
+        self, expr, n, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=unused-argument,no-self-use
         """
         This function returns up to `n` possible solutions for expression `expr`.
 
@@ -532,14 +569,19 @@ class Backend:
         if self._solver_required and solver is None:
             raise BackendError("%s requires a solver for batch evaluation" % self.__class__.__name__)
 
-        converted_exprs = [ self.convert(ex) for ex in exprs ]
+        converted_exprs = [self.convert(ex) for ex in exprs]
 
         return self._batch_eval(
-            converted_exprs, n, extra_constraints=self.convert_list(extra_constraints),
-            solver=solver, model_callback=model_callback
+            converted_exprs,
+            n,
+            extra_constraints=self.convert_list(extra_constraints),
+            solver=solver,
+            model_callback=model_callback,
         )
 
-    def _batch_eval(self, exprs, n, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=unused-argument,no-self-use
+    def _batch_eval(
+        self, exprs, n, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=unused-argument,no-self-use
         """
         Evaluate one or multiple expressions.
 
@@ -568,9 +610,17 @@ class Backend:
         if self._solver_required and solver is None:
             raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
 
-        return self._min(self.convert(expr), extra_constraints=self.convert_list(extra_constraints), signed=signed, solver=solver, model_callback=model_callback)
+        return self._min(
+            self.convert(expr),
+            extra_constraints=self.convert_list(extra_constraints),
+            signed=signed,
+            solver=solver,
+            model_callback=model_callback,
+        )
 
-    def _min(self, expr, extra_constraints=(), signed=False, solver=None, model_callback=None): #pylint:disable=unused-argument,no-self-use
+    def _min(
+        self, expr, extra_constraints=(), signed=False, solver=None, model_callback=None
+    ):  # pylint:disable=unused-argument,no-self-use
         """
         Return the minimum value of expr.
 
@@ -599,9 +649,17 @@ class Backend:
         if self._solver_required and solver is None:
             raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
 
-        return self._max(self.convert(expr), extra_constraints=self.convert_list(extra_constraints), signed=signed, solver=solver, model_callback=model_callback)
+        return self._max(
+            self.convert(expr),
+            extra_constraints=self.convert_list(extra_constraints),
+            signed=signed,
+            solver=solver,
+            model_callback=model_callback,
+        )
 
-    def _max(self, expr, extra_constraints=(), signed=False, solver=None, model_callback=None): #pylint:disable=unused-argument,no-self-use
+    def _max(
+        self, expr, extra_constraints=(), signed=False, solver=None, model_callback=None
+    ):  # pylint:disable=unused-argument,no-self-use
         """
         Return the maximum value of expr.
 
@@ -624,7 +682,9 @@ class Backend:
         :param model_callback:      a function that will be executed with recovered models (if any)
         :return:                    'SAT', 'UNSAT', or 'UNKNOWN'
         """
-        return self._check_satisfiability(extra_constraints=self.convert_list(extra_constraints), solver=solver, model_callback=model_callback)
+        return self._check_satisfiability(
+            extra_constraints=self.convert_list(extra_constraints), solver=solver, model_callback=model_callback
+        )
 
     def _check_satisfiability(self, extra_constraints=(), solver=None, model_callback=None):
         """
@@ -635,7 +695,11 @@ class Backend:
         :param model_callback:      a function that will be executed with recovered models (if any)
         :return:                    'SAT', 'UNSAT', or 'UNKNOWN'
         """
-        return 'SAT' if self.satisfiable(extra_constraints=extra_constraints, solver=solver, model_callback=model_callback) else 'UNSAT'
+        return (
+            "SAT"
+            if self.satisfiable(extra_constraints=extra_constraints, solver=solver, model_callback=model_callback)
+            else "UNSAT"
+        )
 
     def satisfiable(self, extra_constraints=(), solver=None, model_callback=None):
         """
@@ -646,9 +710,13 @@ class Backend:
         :param model_callback:      a function that will be executed with recovered models (if any)
         :return:                    True if sat, otherwise false
         """
-        return self._satisfiable(extra_constraints=self.convert_list(extra_constraints), solver=solver, model_callback=model_callback)
+        return self._satisfiable(
+            extra_constraints=self.convert_list(extra_constraints), solver=solver, model_callback=model_callback
+        )
 
-    def _satisfiable(self, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=no-self-use,unused-argument
+    def _satisfiable(
+        self, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=no-self-use,unused-argument
         """
         This function does a constraint check and returns a model for a solver.
 
@@ -658,7 +726,6 @@ class Backend:
         :return:                    True if sat, otherwise false
         """
         raise BackendError("backend doesn't support solving")
-
 
     def solution(self, expr, v, extra_constraints=(), solver=None, model_callback=None):
         """
@@ -675,9 +742,17 @@ class Backend:
         if self._solver_required and solver is None:
             raise BackendError("%s requires a solver for evaluation" % self.__class__.__name__)
 
-        return self._solution(self.convert(expr), self.convert(v), extra_constraints=self.convert_list(extra_constraints), solver=solver, model_callback=model_callback)
+        return self._solution(
+            self.convert(expr),
+            self.convert(v),
+            extra_constraints=self.convert_list(extra_constraints),
+            solver=solver,
+            model_callback=model_callback,
+        )
 
-    def _solution(self, expr, v, extra_constraints=(), solver=None, model_callback=None): #pylint:disable=unused-argument,no-self-use
+    def _solution(
+        self, expr, v, extra_constraints=(), solver=None, model_callback=None
+    ):  # pylint:disable=unused-argument,no-self-use
         """
         Return True if v is a solution of expr with the extra constraints, False otherwise.
 
@@ -703,7 +778,7 @@ class Backend:
         """
         return self._name(self.convert(a))
 
-    def _name(self, o): #pylint:disable=no-self-use,unused-argument
+    def _name(self, o):  # pylint:disable=no-self-use,unused-argument
         """
         This should return the name of an object.
 
@@ -721,7 +796,7 @@ class Backend:
         """
         return self._identical(self.convert(a), self.convert(b))
 
-    def _identical(self, a, b): #pylint:disable=no-self-use,unused-argument
+    def _identical(self, a, b):  # pylint:disable=no-self-use,unused-argument
         """
         This should return whether `a` is identical to `b`. This is the native version of ``identical()``.
 
@@ -740,7 +815,7 @@ class Backend:
         """
         return self._cardinality(self.convert(a))
 
-    def _cardinality(self, b): #pylint:disable=no-self-use,unused-argument
+    def _cardinality(self, b):  # pylint:disable=no-self-use,unused-argument
         """
         This should return the maximum number of values that an expression can take on. This should be a strict
         *over* approximation.
@@ -756,7 +831,7 @@ class Backend:
     def multivalued(self, a):
         return self.cardinality(a) > 1
 
-    def apply_annotation(self, o, a): #pylint:disable=no-self-use,unused-argument
+    def apply_annotation(self, o, a):  # pylint:disable=no-self-use,unused-argument
         """
         This should apply the annotation on the backend object, and return a new backend object.
 
@@ -768,7 +843,8 @@ class Backend:
 
     def default_op(self, expr):
         # pylint: disable=unused-argument
-        raise BackendError('Backend %s does not support operation %s' % (self, expr.op))
+        raise BackendError(f"Backend {self} does not support operation {expr.op}")
+
 
 from ..errors import BackendError, ClaripyRecursionError, BackendUnsupportedError
 from .backend_z3 import BackendZ3
@@ -776,5 +852,6 @@ from .backend_z3_parallel import BackendZ3Parallel
 from .backend_concrete import BackendConcrete
 from .backend_vsa import BackendVSA
 from ..ast.base import Base
+
 # If you need support for multiple solvers, please import claripy.backends.backend_smtlib_solvers by yourself
 # from .backend_smtlib_solvers import *
