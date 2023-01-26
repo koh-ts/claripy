@@ -7,6 +7,10 @@ class SimplifyHelperMixin:
         self.simplify()
         return super(SimplifyHelperMixin, self).min(*args, **kwargs)
 
+    def constraints_z3(self, *args, **kwargs):
+        self.simplify()
+        return super(SimplifyHelperMixin, self).constraints_z3(*args, **kwargs)
+
     def eval(self, e, n, *args, **kwargs):
         if n > 1:
             self.simplify()

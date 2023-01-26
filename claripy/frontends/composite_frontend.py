@@ -334,6 +334,14 @@ class CompositeFrontend(ConstrainedFrontend):
         self._reabsorb_solver(ms)
         return r
 
+    def constraints_z3(self, e, extra_constraints=(), signed=False, exact=None):
+        self._ensure_sat(extra_constraints=extra_constraints)
+
+        ms = self._merged_solver_for(e=e, lst=extra_constraints)
+        r = ms.constraints_z3(e, extra_constraints=extra_constraints, signed=signed, exact=exact)
+        self._reabsorb_solver(ms)
+        return (r, ms._solver_backend.convert(e))
+
     def solution(self, e, v, extra_constraints=(), exact=None):
         self._ensure_sat(extra_constraints=extra_constraints)
 

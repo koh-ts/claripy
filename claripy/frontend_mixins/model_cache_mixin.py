@@ -79,8 +79,10 @@ class ModelCacheMixin:
         self._eval_exhausted = weakref.WeakSet()
         self._max_exhausted = weakref.WeakSet()
         self._min_exhausted = weakref.WeakSet()
+        self._constraints_z3_exhausted = weakref.WeakSet()
         self._max_signed_exhausted = weakref.WeakSet()
         self._min_signed_exhausted = weakref.WeakSet()
+        self._constraints_z3_signed_exhausted = weakref.WeakSet()
 
     def _blank_copy(self, c):
         super(ModelCacheMixin, self)._blank_copy(c)
@@ -89,8 +91,10 @@ class ModelCacheMixin:
         c._eval_exhausted = weakref.WeakSet()
         c._max_exhausted = weakref.WeakSet()
         c._min_exhausted = weakref.WeakSet()
+        c._constraints_z3_exhausted = weakref.WeakSet()
         c._max_signed_exhausted = weakref.WeakSet()
         c._min_signed_exhausted = weakref.WeakSet()
+        c._constraints_z3_signed_exhausted = weakref.WeakSet()
 
     def _copy(self, c):
         super(ModelCacheMixin, self)._copy(c)
@@ -99,8 +103,10 @@ class ModelCacheMixin:
         c._eval_exhausted = weakref.WeakSet(self._eval_exhausted)
         c._max_exhausted = weakref.WeakSet(self._max_exhausted)
         c._min_exhausted = weakref.WeakSet(self._min_exhausted)
+        c._constraints_z3_exhausted = weakref.WeakSet(self._min_exhausted)
         c._max_signed_exhausted = weakref.WeakSet(self._max_signed_exhausted)
         c._min_signed_exhausted = weakref.WeakSet(self._min_signed_exhausted)
+        c._constraints_z3_signed_exhausted = weakref.WeakSet(self._min_signed_exhausted)
 
     def __setstate__(self, base_state):
         super().__setstate__(base_state)
@@ -109,8 +115,10 @@ class ModelCacheMixin:
         self._eval_exhausted = weakref.WeakSet()
         self._max_exhausted = weakref.WeakSet()
         self._min_exhausted = weakref.WeakSet()
+        self._constraints_z3_exhausted = weakref.WeakSet()
         self._max_signed_exhausted = weakref.WeakSet()
         self._min_signed_exhausted = weakref.WeakSet()
+        self._constraints_z3_signed_exhausted = weakref.WeakSet()
 
     #
     # Model cleaning
@@ -139,8 +147,10 @@ class ModelCacheMixin:
         self._eval_exhausted.add(c.args[0].cache_key)
         self._max_exhausted.add(c.args[0].cache_key)
         self._min_exhausted.add(c.args[0].cache_key)
+        self._constraints_z3_exhausted.add(c.args[0].cache_key)
         self._max_signed_exhausted.add(c.args[0].cache_key)
         self._min_signed_exhausted.add(c.args[0].cache_key)
+        self._constraints_z3_signed_exhausted.add(c.args[0].cache_key)
 
     def add(self, constraints, invalidate_cache=True, **kwargs):
         if len(constraints) == 0:
@@ -166,8 +176,10 @@ class ModelCacheMixin:
                 self._eval_exhausted.clear()
                 self._max_exhausted.clear()
                 self._min_exhausted.clear()
+                self._constraints_z3_exhausted.clear()
                 self._max_signed_exhausted.clear()
                 self._min_signed_exhausted.clear()
+                self._constraints_z3_signed_exhausted.clear()
                 self._models = still_valid
 
         return added
@@ -210,8 +222,10 @@ class ModelCacheMixin:
         self._eval_exhausted.update(other._eval_exhausted)
         self._max_exhausted.update(other._max_exhausted)
         self._min_exhausted.update(other._min_exhausted)
+        self._constraints_z3_exhausted.update(other._constraints_z3_exhausted)
         self._max_signed_exhausted.update(other._max_signed_exhausted)
         self._min_signed_exhausted.update(other._min_signed_exhausted)
+        self._constraints_z3_signed_exhausted.update(other._constraints_z3_signed_exhausted)
 
     #
     # Cache retrieval
@@ -316,6 +330,21 @@ class ModelCacheMixin:
             m = super(ModelCacheMixin, self).max(e, extra_constraints=extra_constraints, signed=signed, **kwargs)
             if len(extra_constraints) == 0:
                 (self._max_signed_exhausted if signed else self._max_exhausted).add(e.cache_key)
+            return m
+
+    def constraints_z3(self, e, extra_constraints=(), signed=False, **kwargs):
+        cached = [ ]
+        if e.cache_key in self._eval_exhausted or e.cache_key in self._max_exhausted:
+            cached = self._get_solutions(e, extra_constraints=extra_constraints)
+
+        if len(cached) > 0:
+            assert len(cached) == 0
+            # signed_key = lambda v: v if v < 2**(len(e)-1) else v - 2**len(e)
+            # return constraints_z3(cached, key=signed_key if signed else lambda v: v)
+        else:
+            m = super(ModelCacheMixin, self).constraints_z3(e, extra_constraints=extra_constraints, signed=signed, **kwargs)
+            if len(extra_constraints) == 0:
+                (self._constraints_z3_signed_exhausted if signed else self._constraints_z3_exhausted).add(e.cache_key)
             return m
 
     def solution(self, e, v, extra_constraints=(), **kwargs):

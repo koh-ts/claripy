@@ -34,6 +34,13 @@ class ConstraintExpansionMixin:
             self.add([SGE(e, m) if signed else UGE(e, m)], invalidate_cache=False)
         return m
 
+    def constraints_z3(self, e, extra_constraints=(), exact=None, signed=False, **kwargs):
+        m, e_z3 = super(ConstraintExpansionMixin, self).constraints_z3(e, extra_constraints=extra_constraints, exact=exact,
+                                                      signed=signed, **kwargs)
+        # if len(extra_constraints) == 0:
+        #     self.add([SGE(e, m) if signed else UGE(e, m)], invalidate_cache=False)
+        return (m, e_z3)
+
     def solution(self, e, v, extra_constraints=(), exact=None, **kwargs):
         b = super(ConstraintExpansionMixin, self).solution(
             e, v,

@@ -194,6 +194,31 @@ class FullFrontend(ConstrainedFrontend):
         except BackendError as exc:
             raise ClaripyFrontendError("Backend error during min") from exc
 
+    def constraints_z3(self, e, extra_constraints=(), signed=False, exact=None):
+        return self._get_solver()
+        # if not self.satisfiable(extra_constraints=extra_constraints):
+        #     raise UnsatError("Unsat during _min()")
+
+        # l.debug("Frontend.constraints_z3() with %d extra_constraints", len(extra_constraints))
+
+        # two = self.eval(e, 2, extra_constraints=extra_constraints)
+        # if len(two) == 0: raise UnsatError("unsat during min()")
+        # if len(two) == 1: return two[0]
+
+        # if signed:
+        #     c = tuple(extra_constraints) + (SLE(e, two[0]), SLE(e, two[1]))
+        # else:
+        #     c = tuple(extra_constraints) + (ULE(e, two[0]), ULE(e, two[1]))
+        # try:
+        #     return self._solver_backend.min(
+        #         e, extra_constraints=c,
+        #         solver=self._get_solver(),
+        #         model_callback=self._model_hook,
+        #         signed=signed,
+        #     )
+        # except BackendError as exc:
+        #     raise ClaripyFrontendError("Backend error during min") from exc
+
     def solution(self, e, v, extra_constraints=(), exact=None):
         try:
             return self._solver_backend.solution(

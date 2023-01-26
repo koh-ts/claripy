@@ -104,6 +104,20 @@ class SatCacheMixin:
                 self._cached_satness = False
             raise
 
+    def constraints_z3(self, e, extra_constraints=(), **kwargs):
+        if self._cached_satness is False: raise UnsatError("cached unsat")
+        try:
+            r = super(SatCacheMixin, self).constraints_z3(
+                e,
+                extra_constraints=extra_constraints, **kwargs
+            )
+            self._cached_satness = True
+            return r
+        except UnsatError:
+            if len(extra_constraints) == 0:
+                self._cached_satness = False
+            raise
+
     def solution(self, e, v, extra_constraints=(), **kwargs):
         if self._cached_satness is False: raise UnsatError("cached unsat")
         try:

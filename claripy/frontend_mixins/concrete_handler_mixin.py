@@ -36,6 +36,9 @@ class ConcreteHandlerMixin:
         else:
             return super(ConcreteHandlerMixin, self).min(e, **kwargs)
 
+    def constraints_z3(self, e, **kwargs):
+        return super(ConcreteHandlerMixin, self).constraints_z3(e, **kwargs)
+
     def solution(self, e, v, **kwargs):
         ce = self._concrete_value(e)
         cv = self._concrete_value(v)

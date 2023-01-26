@@ -73,6 +73,9 @@ class Backend:
             return self._tls.object_cache
 
     def _make_raw_ops(self, op_list, op_dict=None, op_module=None):
+        # kohei added
+        if 'fpEQ' in op_list:
+            op_list.add('fpNE')
         for o in op_list:
             if op_dict is not None:
                 if o in op_dict:

@@ -51,6 +51,10 @@ class ConstraintFilterMixin:
         ec = self._constraint_filter(extra_constraints)
         return super(ConstraintFilterMixin, self).min(e, extra_constraints=ec, **kwargs)
 
+    def constraints_z3(self, e, extra_constraints=(), **kwargs):
+        ec = self._constraint_filter(extra_constraints)
+        return super(ConstraintFilterMixin, self).constraints_z3(e, extra_constraints=ec, **kwargs)
+
     def solution(self, e, v, extra_constraints=(), **kwargs):
         ec = self._constraint_filter(extra_constraints)
         return super(ConstraintFilterMixin, self).solution(e, v, extra_constraints=ec, **kwargs)
